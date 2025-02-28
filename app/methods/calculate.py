@@ -62,10 +62,12 @@ class RecyclingFee:
 
     @classmethod
     def calculate(cls, engine_size: int) -> int:
-        for (min_vol, max_vol), price in cls.RATES.items():
-            if min_vol < engine_size <= max_vol:
-                return price
-        return 0
+        try:
+            for (min_vol, max_vol), price in cls.RATES.items():
+                if min_vol < engine_size <= max_vol:
+                    return price
+        except TypeError as type_error:
+            raise TypeError(type_error)
 
 
 class FirstRegistrationFee:

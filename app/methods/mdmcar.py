@@ -69,6 +69,10 @@ class ParseSite(MDMCarUtils):
         data: dict = await cls.fetch_json(request_url)
         car_info: CarInfo = cls.format_car_info(data)
 
+        for key, value in car_info.items():
+            if not value:
+                raise TypeError("There is None in dictionary")
+
         return car_info
 
     @classmethod

@@ -33,9 +33,9 @@ async def sum_handler(message: Message, state: FSMContext):
 
     try:
         car_info: CarInfo = await ParseSite.get_car_info_from_site(car_url)
-    except Exception as e:
+    except:
         await message.answer("Произошла ошибка при получении данных об автомобиле.")
-        raise CarInfoError(f"Error when receiving data from the website: {e}")
+        raise
 
     try:
         car_calculation: CarCalculation = GetPrices.return_prices(engine_size=car_info['engine_size'],

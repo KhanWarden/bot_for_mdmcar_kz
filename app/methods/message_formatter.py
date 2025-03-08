@@ -5,7 +5,7 @@ from app.models import CarCalculation, CarInfo
 class MessageFormatter:
     TEMPLATE = """
 🔸 {total_price_kz} тг • Стоимость под ключ Алматы
-🔸 {transit_price_kz} тг • Стоимость на транзитах
+🔸 {transit_total} тг • Стоимость на транзитах
 
 ▫️ {car_name}
 ▫️ {mileage} км.
@@ -50,11 +50,17 @@ class MessageFormatter:
             "engine_size": Formatter.format_number_with_spaces(car_info['engine_size']),
             "engine_type": car_info['engine_type'],
             "manufacture_date": f"{Formatter.format_month(car_info['month'])}.{car_info['year']}",
-
             "car_link": car_link,
-        }
 
-        return cls.TEMPLATE.format(**kwargs)
+            "transit_total": Formatter.format_number_with_spaces(car_calculation['transit']
+                                                                 + car_calculation['static_expenses']
+                                                                 + car_calculation['customs'])
+
+        }
+        try:
+            return cls.TEMPLATE.format(**kwargs)
+        except CarCalculation:
+            print("Error while car calculating")
 
     @classmethod
     def _get_exchange_rates(cls) -> tuple[float, float]:

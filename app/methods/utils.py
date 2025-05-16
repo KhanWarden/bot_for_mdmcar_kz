@@ -33,7 +33,19 @@ class Validator:
         :param url: The URL string to validate.
         :return: True if the URL contains "mdmcar.com/car", otherwise False.
         """
-        return bool(re.search(r'mdmcar\.com/car', url))
+        patterns = [
+            r'^(https?://)?(mdmcar\.com)/car/\d+$',
+            r'^(https?://)?(fem\.|www\.)?encar\.com(/.*)?$'
+        ]
+        return any(re.match(pattern, url) for pattern in patterns)
+
+    @staticmethod
+    def get_site_name(url: str) -> str:
+        if re.search(r'(https?://)?mdmcar\.com', url):
+            return "mdmcar"
+        elif re.search(r'(https?://)?(www\.|fem\.)?encar\.com', url):
+            return "encar"
+        return "unknown"
 
     @staticmethod
     def is_valid_value(value: str) -> bool:

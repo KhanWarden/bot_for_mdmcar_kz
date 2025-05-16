@@ -4,6 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from .main import router as calc_router
+from ..states import CalculatorStates
 
 router = Router()
 router.include_routers(calc_router)
@@ -22,3 +23,4 @@ async def start_command(message: Message, state: FSMContext):
                               "Вставьте ссылку с нашего сайта (mdmcar.com/)",
                          disable_web_page_preview=True,
                          )
+    await state.set_state(CalculatorStates.link)

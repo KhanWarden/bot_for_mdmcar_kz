@@ -4,6 +4,7 @@ from aiogram.types import Message
 
 from app.exceptions import CalculationError
 from app.methods.encar import get_car_info
+from app.methods.xls_scraper import get_car_price
 from app.models import CarInfo, CarCalculation
 from app.states import CalculatorStates
 from app.methods import Validator, Formatter, ParseSite, MessageFormatter, GetPrices
@@ -17,20 +18,7 @@ async def link_handler(message: Message, state: FSMContext):
         await message.answer("Введите корректную ссылку на авто")
         return
 
-    await message.answer("Введите сумму с таблицы")
-    await state.update_data(link=message.text)
-    await state.set_state(CalculatorStates.sum_from_table)
-
-
-@router.message(CalculatorStates.sum_from_table)
-async def sum_handler(message: Message, state: FSMContext):
-    if not Validator.is_valid_value(message.text):
-        await message.answer("Неправильное значение!")
-        return
-    await message.answer("Пожалуйста, подождите...")
-
-    value_from_table: int = Formatter.format_value(message.text)
-    car_url: str = await state.get_value('link')
+    car_url = message.text
     site = Validator.get_site_name(car_url)
     try:
         car_info: CarInfo = await ParseSite.get_car_info_from_site(car_url) if site == "mdmcar" \
@@ -39,6 +27,10 @@ async def sum_handler(message: Message, state: FSMContext):
         await message.answer("Произошла ошибка при получении данных об автомобиле.")
         await state.set_state(CalculatorStates.link)
         raise
+
+    value_from_table = get_car_price(full_name=car_info.get("car_name"),
+                                     engine=car_info.get("engine_size"),
+                                     year=car_info.get("year"),)
 
     try:
         car_calculation: CarCalculation = GetPrices.return_prices(engine_size=car_info['engine_size'],

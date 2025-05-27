@@ -4,10 +4,14 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from .main import router as calc_router
+from .excel_handler import router as excel_router
 from ..states import CalculatorStates
 
 router = Router()
-router.include_routers(calc_router)
+router.include_routers(
+    calc_router,
+    excel_router
+)
 
 
 @router.message(CommandStart())

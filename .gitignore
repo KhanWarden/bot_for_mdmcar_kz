@@ -10,3 +10,5 @@ __pycache__
 
 # File with environment variables
 .env
+
+data/*

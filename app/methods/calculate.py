@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Final
 from app.models import CarCalculation
 from .currency_cache import ExchangeRates
 

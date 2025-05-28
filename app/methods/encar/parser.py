@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 import aiohttp
 
 from .utils import format_engine_type, get_car_id_from_link
@@ -13,7 +15,7 @@ async def get_car_info(url: str) -> CarInfo:
     return car_info
 
 
-async def _get_json(car_id: int) -> dict:
+async def _get_json(car_id: int) -> Dict[Any, Any]:
     async with aiohttp.ClientSession() as session:
         request = await session.get(f"{BASE_URL}/{car_id}")
         json = await request.json()
@@ -21,7 +23,7 @@ async def _get_json(car_id: int) -> dict:
 
 
 async def _parse_page(car_id: int) -> CarInfo:
-    json_ = await _get_json(car_id)
+    json_: dict = await _get_json(car_id)
     vehicle_id = int(json_.get("vehicleId"))
     car_name = (json_.get("category").get("manufacturerEnglishName", "") + " " + json_.get("category").get(
         "modelGroupEnglishName", "") + " " + json_.get("category").get("gradeEnglishName", "")).strip()

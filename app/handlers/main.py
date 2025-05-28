@@ -26,11 +26,15 @@ async def link_handler(message: Message, state: FSMContext):
     except:
         await message.answer("Произошла ошибка при получении данных об автомобиле.")
         await state.set_state(CalculatorStates.link)
-        raise
+        return
 
-    value_from_table = get_car_price(full_name=car_info.get("car_name"),
-                                     engine=car_info.get("engine_size"),
-                                     year=car_info.get("year"),)
+    try:
+        value_from_table = get_car_price(full_name=car_info.get("car_name"),
+                                         engine=car_info.get("engine_size"),
+                                         year=car_info.get("year"), )
+    except:
+        await message.answer("Произошла ошибка при получении суммы с таблицы")
+        return
 
     try:
         car_calculation: CarCalculation = GetPrices.return_prices(engine_size=car_info['engine_size'],
@@ -40,12 +44,11 @@ async def link_handler(message: Message, state: FSMContext):
     except Exception as e:
         await message.answer("Произошла ошибка при расчёте.")
         await state.set_state(CalculatorStates.link)
-        raise CalculationError(f"An error occurred during the calculation: {e}")
+        return
 
     reply_to_user = MessageFormatter.format_message(car_info=car_info,
                                                     car_calculation=car_calculation,
                                                     car_link=car_url)
-    await message.delete()
     await message.answer(text=reply_to_user, disable_web_page_preview=True)
     await state.clear()
     await state.set_state(CalculatorStates.link)

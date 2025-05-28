@@ -12,13 +12,14 @@ from app.handlers import router as main_router
 load_dotenv()
 
 storage = RedisStorage.from_url(f"redis://@localhost:6379/0")
+BOT_TOKEN: str = os.getenv("BOT_TOKEN")
 
-bot = Bot(token=os.getenv('BOT_TOKEN'), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=storage)
 dp.include_router(main_router)
 
 
-async def main():
+async def main() -> None:
     await asyncio.gather(
         dp.start_polling(bot, skip_updates=True),
     )

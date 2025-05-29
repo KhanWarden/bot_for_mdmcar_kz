@@ -4,8 +4,15 @@ from app.exceptions import CarInfoError
 
 
 def get_car_id_from_link(url: str) -> int:
-    car_id = url.split("/cars/detail/")[1].split("?")[0]
-    return int(car_id)
+    if "/cars/detail/" in url:
+        try:
+            return int(url.split("/cars/detail/")[1].split("?")[0])
+        except (IndexError, ValueError):
+            pass
+    match = re.search(r"carid=(\d+)", url)
+    if match:
+        return int(match.group(1))
+
 
 
 def extract_engine_size(engine_size: str) -> int:

@@ -23,7 +23,8 @@ df["model"] = df["model"].astype(str).str.strip().str.upper()
 
 
 def normalize(text: str) -> str:
-    return text.replace(" ", "").upper()
+    import re
+    return re.sub(r"[^A-Z0-9]", "", text.upper())
 
 
 def model_matches(input_model: str, table_model: str) -> bool:

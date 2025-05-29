@@ -9,8 +9,8 @@ from ..states import CalculatorStates
 
 router = Router()
 router.include_routers(
+    excel_router,
     calc_router,
-    excel_router
 )
 
 

@@ -29,7 +29,7 @@ async def excel_file_handler(message: Message, state: FSMContext, bot):
 
     try:
         excel_file = await bot.get_file(document.file_id)
-        file_path = excel_file.file_name
+        file_path = excel_file.file_path
 
         local_path = DATA_FOLDER / "excel_file.xlsx"
 

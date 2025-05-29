@@ -84,6 +84,9 @@ class FirstRegistrationFee:
 class GetPrices(Calculator):
     @classmethod
     def return_prices(cls, engine_size: int, car_year: int, sum_from_table: int, car_price: int) -> CarCalculation:
+        usd = ExchangeRates.get_won_rate()
+        car_price = int((car_price * 10000) // usd)
+
         kwargs = {
             "transit": cls._calculate_transit(car_price),
             "recycling_fee": RecyclingFee.calculate(engine_size),

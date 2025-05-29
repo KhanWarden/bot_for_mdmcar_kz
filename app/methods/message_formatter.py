@@ -1,3 +1,7 @@
+from datetime import datetime
+
+import pytz
+
 from app.methods import ExchangeRates, Formatter
 from app.models import CarCalculation, CarInfo
 
@@ -12,27 +16,28 @@ class MessageFormatter:
 ▫️ {engine_size} см³
 ▫️ {engine_type}
 ▫️ {manufacture_date}
-———————————————
-Курс $1 = ₩ {krw_rate}
-Курс $1 = ₸ {kzt_rate}
-
 Посмотреть автомобиль
 {car_link}
-
-🔻 ВАЖНО!
-• Стоимость автомобиля и услуги могут меняться от курса валют на дату оплаты
-• Расчет таможни может меняться от курса доллара
-———————————————
 ———————————————
 🔹 {broker_fee} тг + {customs_fee} тг • Услуги брокера + Таможня
 (Сертификат СКБТС, ЕПТС, Доверенность, СВХ)
 🔹 {recycling_fee} тг • Утилизационный сбор
 🔹 {first_registration_fee} тг • Первичная регистрация
+Курс $1 = ₩ {krw_rate} / ₸ {kzt_rate}
+———————————————
+🔻 ВАЖНО! {date}-{time}:{price_short}
+• Стоимость автомобиля и услуги могут меняться от курса валют на дату оплаты
+• Расчет таможни может меняться от курса доллара
+———————————————
 """
 
     @classmethod
     def format_message(cls, car_info: CarInfo, car_calculation: CarCalculation, car_link: str) -> str:
         kzt, won = cls._get_exchange_rates()
+
+        moscow_datetime = cls._get_moscow_tz()
+        _time = moscow_datetime.strftime("%H:%M:%S")
+        _date = moscow_datetime.strftime("%d.%m.%y")
 
         kwargs = {
             "krw_rate": won,
@@ -54,8 +59,10 @@ class MessageFormatter:
 
             "transit_total": Formatter.format_number_with_spaces(car_calculation['transit']
                                                                  + car_calculation['static_expenses']
-                                                                 + car_calculation['customs'])
-
+                                                                 + car_calculation['customs']),
+            "date": _date,
+            "time": _time,
+            "price_short": car_info['price'],
         }
         try:
             return cls.TEMPLATE.format(**kwargs)
@@ -67,3 +74,9 @@ class MessageFormatter:
         kzt = ExchangeRates.get_kzt_rate()
         won = ExchangeRates.get_won_rate()
         return kzt, won
+
+    @classmethod
+    def _get_moscow_tz(cls) -> datetime:
+        moscow_tz = pytz.timezone("Europe/Moscow")
+        moscow_now = datetime.now(moscow_tz)
+        return moscow_now

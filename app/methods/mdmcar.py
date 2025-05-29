@@ -32,7 +32,6 @@ class MDMCarUtils:
     @classmethod
     def format_car_info(cls, data: dict) -> CarInfo:
         car_info = data["car"]
-        usd = ExchangeRates.get_won_rate()
 
         car_brand: str = data["manufacturer"]["name"]
         car_model: str = data["model"]["name"]
@@ -49,7 +48,7 @@ class MDMCarUtils:
 
         kwargs = {
             "car_name": car_name,
-            "price": (car_info["price"] * 10000) // usd,
+            "price": car_info["price"],
             "engine_size": car_info["engine"],
             "engine_type": engine_type,
             "mileage": car_info["mileage"],

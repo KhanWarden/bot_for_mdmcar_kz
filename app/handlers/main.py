@@ -34,7 +34,8 @@ async def link_handler(message: Message, state: FSMContext):
                                          engine=car_info.get("engine_size"),
                                          year=car_info.get("year"), )
     except (VehicleNotFoundError, Exception):
-        await message.answer("Введите сумму с таблицы")
+        await message.answer("В каталоге нет этого автомобиля.\n"
+                             "Введите сумму")
         await state.update_data(car_info=car_info, car_url=car_url)
         await state.set_state(CalculatorStates.sum_from_table)
         return

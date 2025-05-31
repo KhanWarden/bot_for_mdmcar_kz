@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import logging
 
+from app.exceptions import VehicleNotFoundError
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("car_price_lookup")
 
@@ -37,7 +39,7 @@ def split_brand_model(full_name: str, brand_list: list[str]) -> tuple[str, str]:
         if full_name.startswith(brand):
             model = full_name[len(brand):].strip()
             return brand, model
-    raise ValueError(f"Не удалось определить бренд в '{full_name}'")
+    raise VehicleNotFoundError(f"Не удалось определить бренд в '{full_name}'")
 
 
 def get_car_price(full_name: str, engine: float, year: int) -> int:
@@ -51,8 +53,7 @@ def get_car_price(full_name: str, engine: float, year: int) -> int:
         ]
 
         if df_filtered.empty:
-            logger.error(f"Автомобиль '{full_name}' не найден")
-            raise ValueError(f"Автомобиль '{full_name}' не найден")
+            raise VehicleNotFoundError(f"Автомобиль '{full_name}' не найден")
 
         df_year = df_filtered[df_filtered["year"] == year]
         max_available_year = None
@@ -66,14 +67,14 @@ def get_car_price(full_name: str, engine: float, year: int) -> int:
         volumes = df_year["engine"].dropna().unique()
         if len(volumes) == 0:
             logger.error(f"Нет объёма двигателя для '{full_name}' {year}")
-            raise ValueError(f"Нет данных по объёму двигателя")
+            raise VehicleNotFoundError(f"Нет данных по объёму двигателя")
 
         nearest_volume = volumes[np.argmin(np.abs(volumes - engine))]
         row = df_year[df_year["engine"] == nearest_volume]
 
         if row.empty:
             logger.error(f"Не найдена цена для '{full_name}' {year} с объёмом {nearest_volume}")
-            raise ValueError(f"Нет цены для '{full_name}' {year} с объёмом {nearest_volume}")
+            raise VehicleNotFoundError(f"Нет цены для '{full_name}' {year} с объёмом {nearest_volume}")
 
         base_price = int(row.iloc[0]["price"])
 
@@ -85,6 +86,6 @@ def get_car_price(full_name: str, engine: float, year: int) -> int:
             base_price *= 0.85
         return int(base_price)
 
-    except Exception as e:
+    except VehicleNotFoundError as e:
         logger.exception("Ошибка при поиске цены автомобиля")
         raise

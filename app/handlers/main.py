@@ -2,12 +2,13 @@ from aiogram import Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from app.exceptions import CalculationError
+from app.exceptions import VehicleNotFoundError
+from app.handlers.methods import process_and_respond
 from app.methods.encar import get_car_info
 from app.methods.xls_scraper import get_car_price
-from app.models import CarInfo, CarCalculation
+from app.models import CarInfo
 from app.states import CalculatorStates
-from app.methods import Validator, Formatter, ParseSite, MessageFormatter, GetPrices
+from app.methods import Validator, Formatter, ParseSite
 
 router = Router()
 
@@ -32,23 +33,23 @@ async def link_handler(message: Message, state: FSMContext):
         value_from_table = get_car_price(full_name=car_info.get("car_name"),
                                          engine=car_info.get("engine_size"),
                                          year=car_info.get("year"), )
-    except:
-        await message.answer("Произошла ошибка при получении суммы с таблицы")
+    except (VehicleNotFoundError, Exception):
+        await message.answer("Введите сумму с таблицы")
+        await state.update_data(car_info=car_info, car_url=car_url)
+        await state.set_state(CalculatorStates.sum_from_table)
         return
 
-    try:
-        car_calculation: CarCalculation = GetPrices.return_prices(engine_size=car_info['engine_size'],
-                                                                  car_year=car_info['year'],
-                                                                  car_price=car_info['price'],
-                                                                  sum_from_table=value_from_table)
-    except Exception as e:
-        await message.answer("Произошла ошибка при расчёте.")
-        await state.set_state(CalculatorStates.link)
+    await process_and_respond(message, state, car_info, car_url, value_from_table)
+
+
+@router.message(CalculatorStates.sum_from_table)
+async def sum_handler(message: Message, state: FSMContext):
+    if not Validator.is_valid_value(message.text):
+        await message.answer("Введите корректное число")
         return
 
-    reply_to_user = MessageFormatter.format_message(car_info=car_info,
-                                                    car_calculation=car_calculation,
-                                                    car_link=car_url)
-    await message.answer(text=reply_to_user, disable_web_page_preview=True)
-    await state.clear()
-    await state.set_state(CalculatorStates.link)
+    sum_from_table: int = Formatter.format_value(message.text)
+    car_info: CarInfo = await state.get_value("car_info")
+    car_url: str = await state.get_value("car_url")
+
+    await process_and_respond(message, state, car_info, car_url, sum_from_table)
